@@ -8,7 +8,7 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Global variables for configuration
-API_URL = "http://192.168.50.71/ubus"
+API_URL = "http://10.223.79.154/ubus"
 USERNAME = "mesh"
 PASSWORD = "macaroni"
 TOKEN = None
@@ -106,7 +106,7 @@ authenticate()
 # Create the main Tkinter window
 root = tk.Tk()
 root.title("Mesh Network Monitoring")
-root.geometry("900x300")
+root.geometry("1000x300")
 
 # Create a table (Treeview widget)
 columns = ("MAC Address", "Signal Strength", "Connected Time", "Throughput", "Bandwidth")
