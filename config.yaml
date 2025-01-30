@@ -1,0 +1,53 @@
+network_mesh_interface:
+  clearbox:
+    api_url: "http://10.223.79.154/ubus"
+    wifi_interface: "wlan0"
+    refresh_interval: 5000
+
+  beigebox:
+    api_url: "http://10.223.16.194/ubus"
+    wifi_interface: "wlan0"
+    refresh_interval: 5000
+
+  portablebox:
+    api_url: "http://10.223.103.234/ubus"
+    wifi_interface: "wlan0"
+    refresh_interval: 5000
+
+devices_interface:
+  "00:30:1A:3A:4F:9A":
+    name: "castor"
+    ip: "10.223.50.4"
+    type: "robot"
+    belongs_to: "beigebox"
+
+  "00:30:1A:3A:10:C2":
+    name: "basestation"
+    ip: "10.223.50.101"
+    type: "human_device_interface"
+    belongs_to: "clearbox"
+
+  "00:30:1A:3A:67:EA":
+    name: "warthog"
+    ip: "10.223.50.200"
+    type: "robot"
+    belongs_to: "portablebox"
+
+credentials:
+  castor_ssh:
+    username: "robot"
+    password: "macaroni"
+  warthog_ssh:
+    username: "norlab"
+    password: "macaroni"
+  basestation_ssh:
+    username: "dummy-weasel"
+    password: "vaul"
+  api:
+    username: "mesh"
+    password: "macaroni"
+
+ssh_commands:
+  cpu: "top -bn1 | grep 'Cpu(s)' | awk '{print $2+$4}'"
+  disk: "df -h / | tail -1 | awk '{print $4}'"
+  voltage: "bash -ic 'source /home/robot/ros2_ws/install/setup.bash && ros2 topic echo /motors/left/electrical --once | grep \"^voltage:\" | awk \"{print $1}\"'"
