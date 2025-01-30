@@ -50,4 +50,4 @@ credentials:
 ssh_commands:
   cpu: "top -bn1 | grep 'Cpu(s)' | awk '{print $2+$4}'"
   disk: "df -h / | tail -1 | awk '{print $4}'"
-  voltage: "bash -ic 'source /home/robot/ros2_ws/install/setup.bash && ros2 topic echo /motors/left/electrical --once | grep \"^voltage:\" | awk \"{print $1}\"'"
+  voltage: "bash -ic 'source /home/robot/ros2_ws/install/setup.bash && ros2 topic echo /motors/left/electrical --once | grep \"^voltage:\" | awk \"{print $0}\"'"
