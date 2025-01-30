@@ -15,13 +15,13 @@ network_mesh_interface:
     refresh_interval: 5000
 
 devices_interface:
-  "00:30:1A:3A:4F:9A":
+  "00:30:1A:3A:10:C2":
     name: "castor"
     ip: "10.223.50.4"
     type: "robot"
     belongs_to: "beigebox"
 
-  "00:30:1A:3A:10:C2":
+  "00:30:1A:3A:4F:9A":
     name: "basestation"
     ip: "10.223.50.101"
     type: "human_device_interface"
@@ -50,4 +50,4 @@ credentials:
 ssh_commands:
   cpu: "top -bn1 | grep 'Cpu(s)' | awk '{print $2+$4}'"
   disk: "df -h / | tail -1 | awk '{print $4}'"
-  voltage: "bash -ic 'source /home/robot/ros2_ws/install/setup.bash && ros2 topic echo /motors/left/electrical --once | grep \"^voltage:\" | awk \"{print $1}\"'"
+  voltage: "bash -ic 'source /home/robot/ros2_ws/install/setup.bash && ros2 topic echo /motors/left/electrical --once | grep \"^voltage:\" | awk \"{print $0}\"'"
