@@ -124,11 +124,11 @@ def authenticate(iface_name):
         if 'result' in result and result['result'][0] == 0:
             iface['token'] = result['result'][1]['ubus_rpc_session']
             interface_states[iface_name]['connected'] = True
-            logging.info(f"Authenticated successfully with {iface_name}.")
+            # logging.info(f"Authenticated successfully with {iface_name}.")
             return True
         else:
             interface_states[iface_name]['connected'] = False
-            logging.error(f"Authentication failed for {iface_name}: {result}")
+            # logging.error(f"Authentication failed for {iface_name}: {result}")
             return False
     except requests.exceptions.ConnectionError:
         interface_states[iface_name]['connected'] = False
@@ -405,7 +405,9 @@ def update_data():
                     avg_cpu_str = f"{avg_cpu:.1f}%"
 
                     # Prepare data for top table
-                    belongs_to     = device_info.get('belongs_to', 'N/A') if device_info else 'N/A'
+                    # belongs_to     = MAC_TO_DEVICE.get(device_data.get('mac', 'N/A').lower()).get("belongs_to")
+                    # belongs_to     = device_info.get('belongs_to', 'N/A') if device_info else 'N/A'
+                    belongs_to = f"{iface_name}"
                     signal         = f"{device_data.get('signal', 'N/A')} dBm"
                     connected_time = f"{device_data.get('connected_time', 'N/A')} s"
                     throughput     = f"{device_data.get('thr', 0)/1000:.2f} Mbps"
