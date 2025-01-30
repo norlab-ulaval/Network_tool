@@ -81,6 +81,9 @@ for iface_name, iface_config in NETWORK_INTERFACES.items():
         'refresh_interval': iface_config['refresh_interval'],
         'token': None
     }
+    
+# ===== Sort values =====
+SORT_VALUES = config['screen_sort']
 
 # ===== Global Helper (MAC to device info) =====
 MAC_TO_DEVICE = {mac.lower(): info for mac, info in DEVICES.items()}
@@ -143,7 +146,7 @@ def fetch_data(iface_name):
         logging.warning(f"Token not available for {iface_name}. Abort fetch.")
         return []
     
-    payload = {
+    payload = { 
         "jsonrpc": "2.0",
         "id": 1,
         "method": "call",
@@ -307,11 +310,24 @@ def update_table_2(name, cpu_usage, disk_space, voltage):
     set_cell("Disk Space", disk_space)
     set_cell("Voltage",    voltage)
     
+def sort_values(list_value):
+    column = SORT_VALUES["value"]
+    order = SORT_VALUES["order"]
+    if column=="signal" and order=="ascending":
+         return sorted(list_value, key=lambda x: x[2])  
+    else:
+        logging.info(f"Values not sorted!")
+        return list_value
+    
 # 5) MAIN LOOP: GET DATA → DISPLAY
 def update_data():
     # Clear top table so we can repopulate
     for item in table_1.get_children():
         table_1.delete(item)
+        
+    # Initialize an empty list to store MAC addresses and values
+    mac_list = []
+    values_list = []
 
     # Iterate over each mesh controller
     for iface_name, iface_config in NETWORK_INTERFACES.items():
@@ -328,6 +344,7 @@ def update_data():
             # Create a thread pool for parallel SSH calls
             with ThreadPoolExecutor(max_workers=10) as executor:
                 futures_map = {}
+                is_new_mac = False  # Default value
 
                 # For each device found in assoclist
                 for device_data in devices_list:
@@ -339,10 +356,22 @@ def update_data():
                     if not device_info:
                         # Skip if not in our config
                         continue
+                        
+                    # Check if MAC address is already in the list
+                    if mac in mac_list:
+                        if SORT_VALUES["one_device"]:
+                            is_new_mac = False  # MAC already exists
+                        else:
+                            is_new_mac = True
+                    else:
+                        is_new_mac = True   # New MAC found
+                        mac_list.append(mac)  # Add it to the list
+
+                    logging.info(f"MAC {mac} is {'new' if is_new_mac else 'already seen'}")
 
                     # If device is a robot or human_device_interface, do SSH polling
                     dev_type = device_info.get('type', 'unknown')
-                    if dev_type in ["robot", "human_device_interface"]:
+                    if dev_type in ["robot", "human_device_interface"] and is_new_mac:
                         name = device_info['name']
                         ip_address = device_info['ip']
                         future = executor.submit(get_system_info, name, ip_address)
@@ -381,26 +410,34 @@ def update_data():
                     connected_time = f"{device_data.get('connected_time', 'N/A')} s"
                     throughput     = f"{device_data.get('thr', 0)/1000:.2f} Mbps"
                     bandwidth      = f"{device_data.get('rx', {}).get('rate', 0)/1000:.2f} Mbps"
+                    
+                    values_list.append([belongs_to,name,signal,connected_time,throughput,bandwidth,name, avg_cpu_str, disk_space, voltage])
+     
+    if len(values_list)>=1:  
+        # Sorting by the "signal" column (index 2), in ascending order
+        values_list_sorted = sort_values(values_list)   
+        
+        for values_device in values_list_sorted:             
+            # Insert row into Table 1
+            table_1.insert(
+                 "", "end", 
+                 values=[
+                    values_device[0],
+                    values_device[1],
+                    values_device[2],
+                    values_device[3],
+                    values_device[4],
+                    values_device[5]
+                 ]
+            )
 
-                    # Insert row into Table 1
-                    table_1.insert(
-                        "", "end", 
-                        values=[
-                            belongs_to,
-                            name,
-                            signal,
-                            connected_time,
-                            throughput,
-                            bandwidth
-                        ]
-                    )
-
-                    # Update pivot table (Table 2) with CPU, Disk, Voltage
-                    update_table_2(name, avg_cpu_str, disk_space, voltage)
+            # Update pivot table (Table 2) with CPU, Disk, Voltage
+            update_table_2(values_device[6], values_device[7], values_device[8], values_device[9])
 
     # Schedule next refresh
     refresh_ms = list(NETWORK_INTERFACES.values())[0]['refresh_interval']
     root.after(refresh_ms, update_data)
+    
 # 6) TKINTER GUI SETUP
 if __name__ == "__main__":
     # Initial authentication
